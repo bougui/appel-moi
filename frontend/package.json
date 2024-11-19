@@ -1,0 +1,5 @@
+{
+    "scripts": {
+      "deploy": "aws s3 sync frontend/ s3://nom-du-bucket/"
+    }
+  }

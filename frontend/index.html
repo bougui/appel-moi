@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestionnaire de Transfert Twilio</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Gestionnaire de Transfert Twilio</h1>
+        
+        <div id="loginForm">
+            <input type="password" id="password" placeholder="Mot de passe">
+            <button onclick="authenticate()">Connexion</button>
+        </div>
+
+        <div id="transferForm" style="display: none;">
+            <h2>Sélectionner le numéro de transfert</h2>
+            <select id="phoneNumber">
+                <option value="+33XXXXXXXXX">Numéro 1</option>
+                <option value="+33XXXXXXXXX">Numéro 2</option>
+                <option value="+33XXXXXXXXX">Numéro 3</option>
+            </select>
+            <button onclick="updateTransfer()">Mettre à jour le transfert</button>
+        </div>
+
+        <div id="message"></div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html> 
