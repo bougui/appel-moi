@@ -1,0 +1,4 @@
+twilio_account_sid  = "AC********************************"
+twilio_auth_token   = "********************************"
+twilio_workflow_sid = "WW********************************"
+app_password        = "votre_mot_de_passe_secret"
