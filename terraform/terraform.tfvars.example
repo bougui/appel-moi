@@ -2,3 +2,11 @@ twilio_account_sid  = "AC********************************"
 twilio_auth_token   = "********************************"
 twilio_workflow_sid = "WW********************************"
 app_password        = "votre_mot_de_passe_secret"
+project_name        = "twilio-transfer"
+environment         = "prod"
+phone_numbers       = [
+                        "+14501234567",
+                        "+14509876543",
+                        "+14505555555",
+                        "+14507777777"
+                      ]

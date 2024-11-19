@@ -29,13 +29,9 @@ variable "app_password" {
 }
 
 variable "phone_numbers" {
-  description = "Liste des numéros de téléphone disponibles pour le transfert"
+  description = "Liste des numéros de téléphone pour le transfert"
   type        = list(string)
-  default = [
-    "+33100000001",
-    "+33100000002",
-    "+33100000003"
-  ]
+  default     = []
 }
 
 variable "project_name" {
@@ -58,4 +54,4 @@ variable "tags" {
     Environment = "prod"
     ManagedBy   = "terraform"
   }
-} 
+}
