@@ -12,6 +12,7 @@ Cette application permet de gérer les transferts d'appels Twilio vers différen
 
 ## Structure du Projet
 
+```bash
 project/
 ├── terraform
 │ ├── main.tf
@@ -24,6 +25,7 @@ project/
 ├── index.html
 ├── style.css
 └── script.js
+```
 
 ## Déploiement
 
@@ -42,6 +44,14 @@ twilio_account_sid  = "votre_sid"
 twilio_auth_token   = "votre_token"
 twilio_workflow_sid = "votre_workflow_sid"
 app_password        = "mot_de_passe_initial"
+project_name        = "twilio-transfer"
+environment         = "prod"
+phone_numbers       = [
+                        "+14501234567",
+                        "+14509876543",
+                        "+14505555555",
+                        "+14507777777"
+                      ]
 ```
 
 ### 2. Préparation du backend

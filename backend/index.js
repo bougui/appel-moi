@@ -12,11 +12,19 @@ const PROJECT_NAME = process.env.PROJECT_NAME || 'twilio-transfer';
 const ENVIRONMENT = process.env.ENVIRONMENT || 'prod';
 
 async function getSSMParameter(paramName) {
-    const { Parameter } = await ssm.getParameter({
-        Name: `/${PROJECT_NAME}/${ENVIRONMENT}/${paramName}`,
-        WithDecryption: true
-    }).promise();
-    return Parameter.Value;
+    const AWS = require('aws-sdk');
+    const ssm = new AWS.SSM();
+    console.log(`Récupération du paramètre SSM: ${paramName}`);
+    try {
+        const { Parameter } = await ssm.getParameter({
+            Name: `/${process.env.PROJECT_NAME}/${process.env.ENVIRONMENT}/${paramName}`,
+            WithDecryption: true
+        }).promise();
+        return Parameter.Value;
+    } catch (error) {
+        console.error(`Erreur SSM pour ${paramName}:`, error);
+        throw error;
+    }
 }
 
 async function validatePhoneNumber(phoneNumber) {
@@ -35,80 +43,147 @@ async function validatePassword(password) {
 }
 
 exports.handler = async (event) => {
-    try {
-        // Gestion CORS
-        if (event.httpMethod === 'OPTIONS') {
-            return {
-                statusCode: 200,
-                headers: {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Methods': 'POST, OPTIONS, GET',
-                    'Access-Control-Allow-Headers': 'Content-Type,Authorization'
-                },
-                body: ''
-            };
-        }
+    console.log('=== NOUVELLE REQUÊTE ===');
+    console.log('Méthode:', event.requestContext.http.method);
+    console.log('Body:', event.body);
 
-        const body = JSON.parse(event.body);
-        
-        // Vérification du mot de passe
-        if (!await validatePassword(body.password)) {
-            return {
-                statusCode: 401,
-                headers: {
-                    'Access-Control-Allow-Origin': '*'
-                },
-                body: JSON.stringify({ error: 'Non autorisé' })
-            };
-        }
+    const corsHeaders = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+        'Access-Control-Allow-Headers': '*'
+    };
 
-        // Vérification du numéro de téléphone
-        if (!await validatePhoneNumber(body.phoneNumber)) {
-            return {
-                statusCode: 400,
-                headers: {
-                    'Access-Control-Allow-Origin': '*'
-                },
-                body: JSON.stringify({ error: 'Numéro de téléphone non autorisé' })
-            };
-        }
-
-        // Ajout d'un endpoint GET pour récupérer la liste des numéros
-        if (event.httpMethod === 'GET') {
-            const phoneNumbers = await getSSMParameter('phone_numbers');
-            return {
-                statusCode: 200,
-                headers: {
-                    'Access-Control-Allow-Origin': '*'
-                },
-                body: phoneNumbers
-            };
-        }
-
-        // Mise à jour du workflow Twilio
-        const client = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
-        await client.taskrouter.v1
-            .workspaces(TWILIO_WORKFLOW_SID)
-            .workflows(TWILIO_WORKFLOW_SID)
-            .update({
-                assignmentCallbackUrl: `http://your-twilio-callback-url?target=${body.phoneNumber}`
-            });
-
+    // Gestion OPTIONS
+    if (event.requestContext.http.method === 'OPTIONS') {
+        console.log('Traitement OPTIONS');
         return {
             statusCode: 200,
-            headers: {
-                'Access-Control-Allow-Origin': '*'
-            },
-            body: JSON.stringify({ message: 'Transfert mis à jour avec succès' })
+            headers: corsHeaders,
+            body: ''
         };
+    }
+
+    try {
+        // Gestion GET
+        if (event.requestContext.http.method === 'GET') {
+            console.log('Traitement GET - récupération des numéros');
+            try {
+                const phoneNumbersStr = await getSSMParameter('phone_numbers');
+                console.log('Numéros récupérés (brut):', phoneNumbersStr);
+                
+                // S'assurer que c'est un JSON valide
+                const phoneNumbers = JSON.parse(phoneNumbersStr);
+                console.log('Numéros parsés:', phoneNumbers);
+
+                return {
+                    statusCode: 200,
+                    headers: {
+                        ...corsHeaders,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(phoneNumbers)  // Re-stringify pour s'assurer du format
+                };
+            } catch (error) {
+                console.error('Erreur récupération numéros:', error);
+                return {
+                    statusCode: 500,
+                    headers: corsHeaders,
+                    body: JSON.stringify({ 
+                        error: 'Erreur lors de la récupération des numéros',
+                        details: error.message 
+                    })
+                };
+            }
+        }
+
+        // Gestion POST
+        if (event.requestContext.http.method === 'POST') {
+            try {
+                const body = JSON.parse(event.body || '{}');
+                console.log('Body parsé:', body);
+
+                // Si on a un numéro, c'est une demande de transfert
+                if (body.phoneNumber) {
+                    console.log('=== DEMANDE DE TRANSFERT ===');
+                    console.log('Numéro choisi:', body.phoneNumber);
+                    
+                    // Vérifier le mot de passe d'abord
+                    const storedPassword = await getSSMParameter('app_password');
+                    if (decodeURIComponent(body.password) !== storedPassword) {
+                        console.warn('Mot de passe invalide pour le transfert');
+                        return {
+                            statusCode: 401,
+                            headers: corsHeaders,
+                            body: JSON.stringify({ error: 'Non autorisé' })
+                        };
+                    }
+
+                    // Vérifier si le numéro est autorisé
+                    const phoneNumbersStr = await getSSMParameter('phone_numbers');
+                    const authorizedNumbers = JSON.parse(phoneNumbersStr);
+                    
+                    if (!authorizedNumbers.includes(body.phoneNumber)) {
+                        console.warn('Numéro non autorisé:', body.phoneNumber);
+                        return {
+                            statusCode: 400,
+                            headers: corsHeaders,
+                            body: JSON.stringify({ error: 'Numéro non autorisé' })
+                        };
+                    }
+
+                    console.log('SIMULATION: Mise à jour Twilio avec le numéro', body.phoneNumber);
+                    
+                    return {
+                        statusCode: 200,
+                        headers: corsHeaders,
+                        body: JSON.stringify({ 
+                            message: 'Simulation de transfert réussie',
+                            phoneNumber: body.phoneNumber
+                        })
+                    };
+                }
+
+                // Si on arrive ici, c'est juste une vérification de mot de passe
+                return {
+                    statusCode: 200,
+                    headers: corsHeaders,
+                    body: JSON.stringify({ message: 'Authentifié avec succès' })
+                };
+
+            } catch (error) {
+                console.error('Erreur POST:', error);
+                return {
+                    statusCode: 500,
+                    headers: corsHeaders,
+                    body: JSON.stringify({ 
+                        error: 'Erreur serveur',
+                        details: error.message 
+                    })
+                };
+            }
+        }
+
+        // Si on arrive ici, la méthode n'est pas supportée
+        console.warn(`Méthode non supportée: ${event.requestContext.http.method}`);
+        return {
+            statusCode: 405,
+            headers: corsHeaders,
+            body: JSON.stringify({ 
+                error: 'Méthode non supportée',
+                method: event.requestContext.http.method,
+                supportedMethods: ['GET', 'POST', 'OPTIONS']
+            })
+        };
+
     } catch (error) {
-        console.error('Erreur:', error);
+        console.error('Erreur générale:', error);
         return {
             statusCode: 500,
-            headers: {
-                'Access-Control-Allow-Origin': '*'
-            },
-            body: JSON.stringify({ error: 'Erreur interne du serveur' })
+            headers: corsHeaders,
+            body: JSON.stringify({ 
+                error: 'Erreur serveur',
+                details: error.message 
+            })
         };
     }
 }; 

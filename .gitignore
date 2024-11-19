@@ -165,3 +165,11 @@ cython_debug/
 *.tfvars
 *.tfstate
 *.tfstate.*
+
+*.zip
+node_modules/
+terraform.tfvars
+.terraform/
+
+# vscode
+.vscode/

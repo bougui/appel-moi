@@ -34,4 +34,20 @@ button:hover {
 
 .success {
     color: green;
+}
+
+input[type="text"],
+input[type="password"] {
+    display: block;
+    width: 100%;
+    max-width: 300px;
+    margin: 10px auto;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.error {
+    color: #d32f2f;
+    margin: 10px 0;
 } 
