@@ -2,6 +2,9 @@ provider "aws" {
   region = var.aws_region
 }
 
+# Ajouter au début du fichier, avec les autres data sources
+data "aws_caller_identity" "current" {}
+
 # Lambda Function
 resource "aws_lambda_function" "twilio_transfer" {
   filename         = "${path.module}/index.js.zip"
@@ -176,8 +179,7 @@ resource "aws_iam_role_policy" "lambda_ssm" {
           "ssm:GetParameters"
         ]
         Resource = [
-          aws_ssm_parameter.app_password.arn,
-          aws_ssm_parameter.phone_numbers.arn
+          "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter/${var.project_name}/${var.environment}/*"
         ]
       }
     ]
@@ -248,6 +250,25 @@ resource "aws_s3_bucket_cors_configuration" "website" {
 resource "aws_cloudwatch_log_group" "lambda_logs" {
   name              = "/aws/lambda/${var.project_name}-manager"
   retention_in_days = 14 # Garde les logs pendant 14 jours
+}
+
+# Paramètres Twilio
+resource "aws_ssm_parameter" "twilio_account_sid" {
+  name  = "/${var.project_name}/${var.environment}/twilio_account_sid"
+  type  = "SecureString"
+  value = var.twilio_account_sid
+}
+
+resource "aws_ssm_parameter" "twilio_auth_token" {
+  name  = "/${var.project_name}/${var.environment}/twilio_auth_token"
+  type  = "SecureString"
+  value = var.twilio_auth_token
+}
+
+resource "aws_ssm_parameter" "twilio_number" {
+  name  = "/${var.project_name}/${var.environment}/twilio_number"
+  type  = "SecureString"
+  value = var.twilio_number
 }
 
 output "api_url" {

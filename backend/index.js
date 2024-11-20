@@ -79,16 +79,45 @@ exports.handler = async (event) => {
             // Demande de transfert
             if (body.phoneNumber) {
                 console.log('Transfert demandé vers:', body.phoneNumber);
-                return {
-                    statusCode: 200,
-                    headers: corsHeaders,
-                    body: JSON.stringify({ 
-                        message: 'Simulation de transfert réussie',
-                        phoneNumber: body.phoneNumber
-                    })
-                };
+                
+                try {
+                    // Récupération des credentials Twilio
+                    const accountSid = await getSSMParameter('twilio_account_sid');
+                    const authToken = await getSSMParameter('twilio_auth_token');
+                    const twilioNumber = await getSSMParameter('twilio_number');
+                    
+                    // Création du client Twilio
+                    const client = twilio(accountSid, authToken);
+
+                    // Envoi du SMS
+                    await client.messages.create({
+                        body: "Ton numéro est associé au camp Paul B",
+                        from: twilioNumber,
+                        to: body.phoneNumber
+                    });
+
+                    return {
+                        statusCode: 200,
+                        headers: corsHeaders,
+                        body: JSON.stringify({ 
+                            message: 'Transfert configuré et SMS envoyé',
+                            phoneNumber: body.phoneNumber
+                        })
+                    };
+                } catch (error) {
+                    console.error('Erreur Twilio:', error);
+                    return {
+                        statusCode: 500,
+                        headers: corsHeaders,
+                        body: JSON.stringify({ 
+                            error: 'Erreur lors de l\'envoi du SMS',
+                            details: error.message
+                        })
+                    };
+                }
             }
 
+            // A ameliorer
             // Simple authentification
             return {
                 statusCode: 200,

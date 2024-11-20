@@ -27,8 +27,8 @@ TERRAFORM_SOURCES := $(shell find terraform -type f -name "*.tf" -o -name "*.tfv
 
 # Remplacer l'ancienne règle deploy-backend par celles-ci
 terraform/index.js.zip: $(BACKEND_SOURCES)
-	@echo "${YELLOW}Création du zip backend...${NC}"
-	cd backend && zip -r ../terraform/index.js.zip index.js package.json node_modules/
+	@echo "${YELLOW}Mise à jour du zip backend...${NC}"
+	cd backend && zip -ur ../terraform/index.js.zip index.js package.json node_modules/
 
 deploy-backend: terraform/index.js.zip $(TERRAFORM_SOURCES)
 	@echo "${YELLOW}Déploiement du backend...${NC}"

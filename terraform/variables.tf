@@ -55,3 +55,8 @@ variable "tags" {
     ManagedBy   = "terraform"
   }
 }
+
+variable "twilio_number" {
+  type        = string
+  description = "Twilio Phone Number"
+}
