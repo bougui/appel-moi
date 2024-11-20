@@ -21,10 +21,17 @@ all: deploy
 deploy: deploy-backend deploy-frontend
 	@echo "${GREEN}Déploiement complet terminé!${NC}"
 
-# Déploiement du backend (Terraform)
-deploy-backend:
-	@echo "${YELLOW}Déploiement du backend...${NC}"
+# Ajouter après les variables existantes
+BACKEND_SOURCES := backend/index.js backend/package.json backend/node_modules
+TERRAFORM_SOURCES := $(shell find terraform -type f -name "*.tf" -o -name "*.tfvars")
+
+# Remplacer l'ancienne règle deploy-backend par celles-ci
+terraform/index.js.zip: $(BACKEND_SOURCES)
+	@echo "${YELLOW}Création du zip backend...${NC}"
 	cd backend && zip -r ../terraform/index.js.zip index.js package.json node_modules/
+
+deploy-backend: terraform/index.js.zip $(TERRAFORM_SOURCES)
+	@echo "${YELLOW}Déploiement du backend...${NC}"
 	cd terraform && terraform init && terraform apply -auto-approve
 
 # Déploiement du frontend (S3)

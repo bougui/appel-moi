@@ -83,7 +83,7 @@ async function authenticate() {
     }
 }
 
-async function updatePhoneNumber() {
+async function updateTransfer() {
     const selectedNumber = document.getElementById('phoneNumber').value;
     console.log('Tentative de transfert vers:', selectedNumber);
 
@@ -94,7 +94,7 @@ async function updatePhoneNumber() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                password: encodeURIComponent(currentPassword),  // Utiliser le mot de passe stocké
+                password: encodeURIComponent(currentPassword),
                 phoneNumber: selectedNumber
             })
         });
