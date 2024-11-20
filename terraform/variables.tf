@@ -17,7 +17,7 @@ variable "twilio_auth_token" {
 }
 
 variable "twilio_workflow_sid" {
-  description = "Twilio Workflow SID"
+  description = "Twilio Studio Flow SID"
   type        = string
   sensitive   = true
 }

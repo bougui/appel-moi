@@ -271,6 +271,13 @@ resource "aws_ssm_parameter" "twilio_number" {
   value = var.twilio_number
 }
 
+# Paramètre pour le Workflow SID
+resource "aws_ssm_parameter" "twilio_workflow_sid" {
+  name  = "/${var.project_name}/${var.environment}/twilio_workflow_sid"
+  type  = "SecureString"
+  value = var.twilio_workflow_sid
+}
+
 output "api_url" {
   value       = aws_apigatewayv2_api.api.api_endpoint
   description = "URL de l'API Gateway"

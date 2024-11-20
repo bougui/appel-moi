@@ -81,15 +81,23 @@ exports.handler = async (event) => {
                 console.log('Transfert demandé vers:', body.phoneNumber);
                 
                 try {
-                    // Récupération des credentials Twilio
                     const accountSid = await getSSMParameter('twilio_account_sid');
                     const authToken = await getSSMParameter('twilio_auth_token');
                     const twilioNumber = await getSSMParameter('twilio_number');
-                    
-                    // Création du client Twilio
+                    const workflowSid = await getSSMParameter('twilio_workflow_sid');
                     const client = twilio(accountSid, authToken);
 
-                    // Envoi du SMS
+                    // Mise à jour du workflow
+                    await client.studio.v2
+                        .flows(workflowSid)
+                        .update({
+                            status: 'published',
+                            parameters: {
+                                forward_to: body.phoneNumber
+                            }
+                        });
+
+                    // Envoi du SMS de confirmation
                     await client.messages.create({
                         body: "Ton numéro est associé au camp Paul B",
                         from: twilioNumber,
@@ -100,7 +108,7 @@ exports.handler = async (event) => {
                         statusCode: 200,
                         headers: corsHeaders,
                         body: JSON.stringify({ 
-                            message: 'Transfert configuré et SMS envoyé',
+                            message: 'Workflow mis à jour et SMS envoyé',
                             phoneNumber: body.phoneNumber
                         })
                     };
@@ -110,7 +118,7 @@ exports.handler = async (event) => {
                         statusCode: 500,
                         headers: corsHeaders,
                         body: JSON.stringify({ 
-                            error: 'Erreur lors de l\'envoi du SMS',
+                            error: 'Erreur lors de la mise à jour chez twilio',
                             details: error.message
                         })
                     };
