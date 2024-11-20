@@ -278,6 +278,20 @@ resource "aws_ssm_parameter" "twilio_workflow_sid" {
   value = var.twilio_workflow_sid
 }
 
+# Ajouter aux paramètres SSM
+resource "aws_ssm_parameter" "twilio_phone_sid" {
+  name  = "/${var.project_name}/${var.environment}/twilio_phone_sid"
+  type  = "SecureString"
+  value = var.twilio_phone_sid
+}
+
+# Ajouter aux paramètres SSM
+resource "aws_ssm_parameter" "twilio_twiml_sid" {
+  name  = "/${var.project_name}/${var.environment}/twilio_twiml_sid"
+  type  = "SecureString"
+  value = var.twilio_twiml_sid
+}
+
 output "api_url" {
   value       = aws_apigatewayv2_api.api.api_endpoint
   description = "URL de l'API Gateway"

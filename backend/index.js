@@ -84,36 +84,14 @@ exports.handler = async (event) => {
                     const accountSid = await getSSMParameter('twilio_account_sid');
                     const authToken = await getSSMParameter('twilio_auth_token');
                     const twilioNumber = await getSSMParameter('twilio_number');
-                    const workflowSid = await getSSMParameter('twilio_workflow_sid');
+                    const phoneSid = await getSSMParameter('twilio_phone_sid');
+                    const twimlSid = await getSSMParameter('twilio_twiml_sid');
                     const client = twilio(accountSid, authToken);
 
-                    // Récupérer le flow et logger sa structure
-                    const flow = await client.studio.v2
-                        .flows(workflowSid)
-                        .fetch();
-                    
-                    console.log('Flow récupéré:', JSON.stringify(flow, null, 2));
-                    console.log('Définition actuelle:', flow.definition);
-
-                    // Mettre à jour la définition
-                    const definition = flow.definition; // La définition est déjà un objet
-                    
-                    // Trouver et mettre à jour le widget connect_call_to
-                    for (const widget of Object.values(definition.states)) {
-                        if (widget.type === 'connect-call-to') { // Utiliser le bon type
-                            console.log('Widget trouvé:', widget);
-                            widget.properties.phoneNumber = body.phoneNumber;
-                        }
-                    }
-
-                    console.log('Nouvelle définition:', JSON.stringify(definition, null, 2));
-
-                    // Publier la mise à jour
-                    await client.studio.v2
-                        .flows(workflowSid)
+                    // Utiliser le TwiML SID depuis les paramètres
+                    await client.incomingPhoneNumbers(phoneSid)
                         .update({
-                            status: 'published',
-                            definition: definition // Pas besoin de stringify, l'API s'en charge
+                            voiceUrl: `https://handler.twilio.com/twiml/${twimlSid}?ForwardTo=${body.phoneNumber}`
                         });
 
                     // Envoi du SMS de confirmation
@@ -127,20 +105,18 @@ exports.handler = async (event) => {
                         statusCode: 200,
                         headers: corsHeaders,
                         body: JSON.stringify({ 
-                            message: 'Workflow mis à jour et SMS envoyé',
+                            message: 'Transfert configuré et SMS envoyé',
                             phoneNumber: body.phoneNumber
                         })
                     };
                 } catch (error) {
                     console.error('Erreur Twilio:', error);
-                    console.error('Stack:', error.stack);
                     return {
                         statusCode: 500,
                         headers: corsHeaders,
                         body: JSON.stringify({ 
                             error: 'Erreur lors de la mise à jour',
-                            details: error.message,
-                            stack: error.stack
+                            details: error.message
                         })
                     };
                 }

@@ -60,3 +60,13 @@ variable "twilio_number" {
   type        = string
   description = "Twilio Phone Number"
 }
+
+variable "twilio_phone_sid" {
+  type        = string
+  description = "Twilio Phone Number SID (commence par PN...)"
+}
+
+variable "twilio_twiml_sid" {
+  type        = string
+  description = "Twilio TwiML Bin SID (commence par EH...)"
+}
