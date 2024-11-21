@@ -11,6 +11,9 @@ let cachedPhoneNumbers = null;
 const PROJECT_NAME = process.env.PROJECT_NAME || 'twilio-transfer';
 const ENVIRONMENT = process.env.ENVIRONMENT || 'prod';
 
+// Ajoutez la description du projet aux logs
+const projectDescription = process.env.PROJECT_DESCRIPTION || 'Description non définie';
+
 async function getSSMParameter(paramName) {
     const AWS = require('aws-sdk');
     const ssm = new AWS.SSM();
@@ -43,6 +46,7 @@ async function validatePassword(password) {
 }
 
 exports.handler = async (event) => {
+    console.log(`Description du projet: ${projectDescription}`);
     console.log('Méthode:', event.requestContext.http.method);
 
     const corsHeaders = {

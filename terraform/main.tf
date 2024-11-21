@@ -22,6 +22,7 @@ resource "aws_lambda_function" "twilio_transfer" {
       TWILIO_WORKFLOW_SID = var.twilio_workflow_sid
       PROJECT_NAME        = var.project_name
       ENVIRONMENT         = var.environment
+      PROJECT_DESCRIPTION = var.project_description
     }
   }
 

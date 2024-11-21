@@ -180,4 +180,4 @@ async function updatePhoneNumber() {
 }
 
 document.getElementById('project-title').textContent = PROJECT_NAME;
-document.getElementById('project-name').textContent = PROJECT_NAME; 
+document.getElementById('project-name').textContent = PROJECT_DESCRIPTION; 

@@ -43,6 +43,11 @@ variable "project_name" {
   default     = "twilio-transfer"
 }
 
+variable "project_description" {
+  type        = string
+  description = "Description du projet pour les logs CloudWatch"
+}
+
 variable "environment" {
   description = "Environnement (dev, prod, etc.)"
   type        = string
