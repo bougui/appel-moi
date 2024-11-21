@@ -29,9 +29,12 @@ variable "app_password" {
 }
 
 variable "phone_numbers" {
-  description = "Liste des numéros de téléphone pour le transfert"
-  type        = list(string)
-  default     = []
+  type = list(object({
+    number      = string
+    description = string
+    sendSms     = bool
+  }))
+  description = "Liste des numéros de téléphone avec leurs configurations"
 }
 
 variable "project_name" {
@@ -69,4 +72,9 @@ variable "twilio_phone_sid" {
 variable "twilio_twiml_sid" {
   type        = string
   description = "Twilio TwiML Bin SID (commence par EH...)"
+}
+
+variable "app_username" {
+  type        = string
+  description = "Nom d'utilisateur pour l'application"
 }

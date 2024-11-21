@@ -1,6 +1,4 @@
 let currentPassword = '';
-const VALID_USERNAME = 'rosaire'; // Username hardcodé
-const API_URL = 'https://3k2dleqmv3.execute-api.ca-central-1.amazonaws.com';
 
 async function loadPhoneNumbers() {
     try {
@@ -25,12 +23,15 @@ async function loadPhoneNumbers() {
             throw new Error('Format de numéros invalide');
         }
 
-        phoneNumbers.forEach((number, index) => {
+        phoneNumbers.forEach((phone) => {
             const option = document.createElement('option');
-            option.value = number;
-            option.textContent = `Numéro ${index + 1}: ${number}`;
+            option.value = JSON.stringify(phone);
+            const smsIndicator = phone.sendSms ? '📱' : '🔕';
+            option.textContent = `${phone.description} (${phone.number}) ${smsIndicator}`;
             select.appendChild(option);
         });
+
+        console.log('Options créées:', select.innerHTML);
     } catch (error) {
         console.error('Erreur:', error);
         document.getElementById('message').innerHTML = 
@@ -39,16 +40,10 @@ async function loadPhoneNumbers() {
 }
 
 async function authenticate() {
-    const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
+    const username = document.getElementById('username').value;
     const messageDiv = document.getElementById('message');
-    
-    if (username.toLowerCase() !== VALID_USERNAME) {
-        messageDiv.innerHTML = `<p class="error">Nom d'usager invalide</p>`;
-        return;
-    }
-    
-    // Tester le mot de passe avec l'API
+
     try {
         const response = await fetch(`${API_URL}/transfer`, {
             method: 'POST',
@@ -56,30 +51,23 @@ async function authenticate() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
+                username: encodeURIComponent(username),
                 password: encodeURIComponent(password)
             })
         });
 
-        if (response.status === 401) {
-            messageDiv.innerHTML = `<p class="error">Mot de passe invalide</p>`;
-            return;
+        const data = await response.json();
+
+        if (response.ok) {
+            messageDiv.innerHTML = '';
+            currentPassword = password;
+            showPhoneNumbers();
+        } else {
+            messageDiv.innerHTML = `<p class="error">${data.error}</p>`;
         }
-
-        if (!response.ok) {
-            messageDiv.innerHTML = `<p class="error">Erreur lors de la connexion</p>`;
-            return;
-        }
-
-        // Si on arrive ici, l'authentification est réussie
-        currentPassword = password;
-        document.getElementById('loginForm').style.display = 'none';
-        document.getElementById('transferForm').style.display = 'block';
-        loadPhoneNumbers();
-        messageDiv.innerHTML = ''; // Effacer les messages d'erreur
-
     } catch (error) {
         console.error('Erreur:', error);
-        messageDiv.innerHTML = `<p class="error">Erreur de connexion au serveur</p>`;
+        messageDiv.innerHTML = `<p class="error">Erreur de connexion</p>`;
     }
 }
 
@@ -104,12 +92,83 @@ async function updateTransfer() {
         }
 
         const result = await response.json();
-        document.getElementById('message').innerHTML = 
-            `<p class="success">Transfert configuré vers ${selectedNumber}</p>`;
+        const messageDiv = document.getElementById('message');
+        messageDiv.innerHTML = `
+            <p style="color: #333;">
+                ${result.message}
+                ${result.smsSent ? '(SMS envoyé)' : ''}
+            </p>
+        `;
 
     } catch (error) {
         console.error('Erreur:', error);
         document.getElementById('message').innerHTML = 
             `<p class="error">Erreur lors du transfert: ${error.message}</p>`;
+    }
+}
+
+async function showPhoneNumbers() {
+    const phoneContainer = document.getElementById('phone-container');
+    const messageDiv = document.getElementById('message');
+
+    try {
+        const response = await fetch(`${API_URL}/transfer`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            const phoneNumbers = await response.json();
+            phoneContainer.style.display = 'block';
+            document.querySelector('.login-container').style.display = 'none';
+
+            const select = document.getElementById('phoneNumber');
+            select.innerHTML = '';
+            
+            phoneNumbers.forEach((phone) => {
+                const option = document.createElement('option');
+                option.value = JSON.stringify(phone);
+                const smsIndicator = phone.sendSms ? '📱' : '🔕';
+                option.textContent = `${phone.description} (${phone.number}) ${smsIndicator}`;
+                select.appendChild(option);
+            });
+        } else {
+            messageDiv.innerHTML = `<p class="error">Erreur lors du chargement des numéros</p>`;
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        messageDiv.innerHTML = `<p class="error">Erreur de connexion</p>`;
+    }
+}
+
+async function updatePhoneNumber() {
+    const selectedPhone = document.getElementById('phoneNumber').value;
+    const messageDiv = document.getElementById('message');
+
+    try {
+        const response = await fetch(`${API_URL}/transfer`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: encodeURIComponent(document.getElementById('username').value),
+                password: encodeURIComponent(currentPassword),
+                phoneNumber: selectedPhone
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            messageDiv.innerHTML = `<p style="color: #333;">${data.message}</p>`;
+        } else {
+            messageDiv.innerHTML = `<p class="error">${data.error}</p>`;
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        messageDiv.innerHTML = `<p class="error">Erreur lors de la mise à jour</p>`;
     }
 } 

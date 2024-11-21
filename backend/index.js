@@ -64,11 +64,12 @@ exports.handler = async (event) => {
     if (event.requestContext.http.method === 'POST') {
         try {
             const body = JSON.parse(event.body || '{}');
+            const storedUsername = await getSSMParameter('app_username');
             const storedPassword = await getSSMParameter('app_password');
             const decodedPassword = decodeURIComponent(body.password || '');
+            const decodedUsername = decodeURIComponent(body.username || '');
 
-            if (decodedPassword !== storedPassword) {
-                console.warn('Mot de passe invalide');
+            if (decodedUsername !== storedUsername || decodedPassword !== storedPassword) {
                 return {
                     statusCode: 401,
                     headers: corsHeaders,
@@ -78,9 +79,10 @@ exports.handler = async (event) => {
 
             // Demande de transfert
             if (body.phoneNumber) {
-                console.log('Transfert demandé vers:', body.phoneNumber);
-                
                 try {
+                    const phoneData = JSON.parse(body.phoneNumber);
+                    console.log('Transfert demandé vers:', phoneData.description);
+                    
                     const accountSid = await getSSMParameter('twilio_account_sid');
                     const authToken = await getSSMParameter('twilio_auth_token');
                     const twilioNumber = await getSSMParameter('twilio_number');
@@ -88,25 +90,39 @@ exports.handler = async (event) => {
                     const twimlSid = await getSSMParameter('twilio_twiml_sid');
                     const client = twilio(accountSid, authToken);
 
-                    // Utiliser le TwiML SID depuis les paramètres
+                    // Mise à jour du transfert
                     await client.incomingPhoneNumbers(phoneSid)
                         .update({
-                            voiceUrl: `https://handler.twilio.com/twiml/${twimlSid}?ForwardTo=${body.phoneNumber}`
+                            voiceUrl: `https://handler.twilio.com/twiml/${twimlSid}?ForwardTo=${phoneData.number}`
                         });
 
-                    // Envoi du SMS de confirmation
-                    await client.messages.create({
-                        body: "Ton numéro est associé au camp Paul B",
-                        from: twilioNumber,
-                        to: body.phoneNumber
+                    // Formatage de la date et heure
+                    const now = new Date();
+                    const dateStr = now.toLocaleString('fr-CA', {
+                        timeZone: 'America/Montreal',
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false
                     });
+
+                    // Envoi du SMS seulement si sendSms est true
+                    if (phoneData.sendSms !== false) {
+                        await client.messages.create({
+                            body: `Ton numéro est associé au camp Paul B (${dateStr})\nLe club des 2 de piques`,
+                            from: twilioNumber,
+                            to: phoneData.number
+                        });
+                    }
 
                     return {
                         statusCode: 200,
                         headers: corsHeaders,
                         body: JSON.stringify({ 
-                            message: 'Transfert configuré et SMS envoyé',
-                            phoneNumber: body.phoneNumber
+                            message: `Transfert configuré vers ${phoneData.description}`,
+                            smsSent: phoneData.sendSms !== false
                         })
                     };
                 } catch (error) {
@@ -142,16 +158,25 @@ exports.handler = async (event) => {
     if (event.requestContext.http.method === 'GET') {
         try {
             const phoneNumbersStr = await getSSMParameter('phone_numbers');
+            const phoneNumbers = JSON.parse(phoneNumbersStr);
+
             return {
                 statusCode: 200,
-                headers: corsHeaders,
-                body: phoneNumbersStr
+                headers: {
+                    ...corsHeaders,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(phoneNumbers)
             };
         } catch (error) {
+            console.error('Erreur récupération numéros:', error);
             return {
                 statusCode: 500,
                 headers: corsHeaders,
-                body: JSON.stringify({ error: error.message })
+                body: JSON.stringify({ 
+                    error: 'Erreur lors de la récupération des numéros',
+                    details: error.message 
+                })
             };
         }
     }

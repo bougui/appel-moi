@@ -13,6 +13,7 @@ resource "aws_lambda_function" "twilio_transfer" {
   role             = aws_iam_role.lambda_role.arn
   handler          = "index.handler"
   runtime          = "nodejs20.x"
+  timeout          = 5
 
   environment {
     variables = {
@@ -116,10 +117,15 @@ resource "aws_ssm_parameter" "app_password" {
 }
 
 resource "aws_ssm_parameter" "phone_numbers" {
-  name        = "/${var.project_name}/${var.environment}/phone_numbers"
-  description = "Liste des numéros de téléphone pour le transfert"
-  type        = "SecureString"
-  value       = jsonencode(var.phone_numbers)
+  name = "/${var.project_name}/${var.environment}/phone_numbers"
+  type = "SecureString"
+  value = jsonencode([
+    for i, number in var.phone_numbers : {
+      number : number.number,
+      description : "Numéro ${i + 1}: ${number.description}",
+      sendSms : number.sendSms
+    }
+  ])
 }
 
 # Rôle IAM pour la Lambda
@@ -292,12 +298,21 @@ resource "aws_ssm_parameter" "twilio_twiml_sid" {
   value = var.twilio_twiml_sid
 }
 
-output "api_url" {
-  value       = aws_apigatewayv2_api.api.api_endpoint
-  description = "URL de l'API Gateway"
+# Paramètre pour le nom d'utilisateur
+resource "aws_ssm_parameter" "app_username" {
+  name  = "/${var.project_name}/${var.environment}/app_username"
+  type  = "SecureString"
+  value = var.app_username
 }
 
-output "website_url" {
-  value       = "http://${aws_s3_bucket.website.bucket}.s3-website.${var.aws_region}.amazonaws.com"
-  description = "URL du site web"
+# Paramètre SSM pour l'URL de l'API
+resource "aws_ssm_parameter" "api_url" {
+  name  = "/${var.project_name}/${var.environment}/api_url"
+  type  = "String"
+  value = aws_apigatewayv2_api.api.api_endpoint
+
+  depends_on = [
+    aws_apigatewayv2_route.post,
+    aws_apigatewayv2_route.get
+  ]
 }

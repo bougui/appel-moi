@@ -4,12 +4,19 @@ twilio_workflow_sid = "WW********************************"# pas nécessaire si o
 twilio_phone_sid    = "PN********************************"
 twilio_twiml_sid    = "EH********************************"
 twilio_number       = "+15157770123"
+app_username        = "Ton-usager"
 app_password        = "votre_mot_de_passe_secret"
 project_name        = "twilio-transfer"
 environment         = "prod"
-phone_numbers       = [
-                        "+14501234567",
-                        "+14509876543",
-                        "+14505555555",
-                        "+14507777777"
-                      ]
+phone_numbers = [
+  {
+    number      = "+14181234567"
+    description = "Chalet principal"
+    sendSms     = true
+  },
+  {
+    number      = "+14189876543"
+    description = "Pavillon des sports"
+    sendSms     = false
+  }
+]

@@ -1,6 +1,7 @@
 # Lecture du project_name depuis terraform.tfvars
 PROJECT_NAME := $(shell awk -F'=' '/project_name/ {gsub(/"/, "", $$2); gsub(/[ \t]/, "", $$2); print $$2}' terraform/terraform.tfvars)
 AWS_REGION := ca-central-1
+ENVIRONMENT := prod
 
 # Vérification que PROJECT_NAME n'est pas vide
 ifeq ($(PROJECT_NAME),)
@@ -36,6 +37,9 @@ deploy-backend: terraform/index.js.zip $(TERRAFORM_SOURCES)
 
 # Déploiement du frontend (S3)
 deploy-frontend:
+	@echo "${YELLOW}Création de la configuration frontend...${NC}"
+	$(eval API_URL=$(shell cd terraform && terraform output -raw api_url))
+	@echo "const API_URL = '${API_URL}';" > frontend/config.js
 	@echo "${YELLOW}Déploiement du frontend...${NC}"
 	aws s3 sync frontend/ s3://$(PROJECT_NAME)/ \
 		--delete \
