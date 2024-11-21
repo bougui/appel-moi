@@ -1,4 +1,4 @@
-# Gestion des transferts d'appels - Camp Paul B
+# Gestion des transferts d'appels
 
 Application web pour gérer les transferts d'appels téléphoniques du Camp Paul B.
 
@@ -49,27 +49,6 @@ project_description = "Gestion des transferts d'appels pour le Camp Paul B"
 
 2. Placez votre image de fond dans `frontend/images/background.jpg`
 
-## Commandes Make disponibles
-
-```bash
-# Déployer l'infrastructure complète
-make deploy
-
-# Déployer uniquement le backend
-make deploy-backend
-
-# Déployer uniquement le frontend
-make deploy-frontend
-
-# Détruire l'infrastructure
-make destroy
-
-# Initialiser Terraform
-make init
-
-# Formater les fichiers Terraform
-make fmt
-```
 
 ## Déploiement
 
@@ -82,6 +61,15 @@ make init
 ```bash
 make deploy
 ```
+3. Déployez le frontend :
+```bash
+make deploy-frontend
+```
+4. Déployez le backend :
+```bash
+make deploy-backend
+```
+
 
 ## Fonctionnalités
 

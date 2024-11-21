@@ -174,3 +174,10 @@ terraform.tfvars
 
 # vscode
 .vscode/
+
+# vercel pas certain comment gérer les variables
+.vercel
+node_modules/
+frontend/config.js
+terraform/.terraform
+terraform/terraform.tfstate*
