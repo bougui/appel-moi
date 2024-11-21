@@ -129,6 +129,7 @@ async function showPhoneNumbers() {
                 <h2>Gestion des transferts d'appels</h2>
                 <select id="phoneNumber"></select>
                 <button onclick="updatePhoneNumber()">Mettre à jour</button>
+                <div id="update-message"></div>
             `;
             phoneContainer.style.display = 'block';
 
@@ -151,7 +152,7 @@ async function showPhoneNumbers() {
 
 async function updatePhoneNumber() {
     const selectedPhone = document.getElementById('phoneNumber').value;
-    const messageDiv = document.getElementById('message');
+    const messageDiv = document.getElementById('update-message');
 
     try {
         const response = await fetch(`${API_URL}/transfer`, {
