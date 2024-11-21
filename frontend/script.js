@@ -110,6 +110,7 @@ async function updateTransfer() {
 async function showPhoneNumbers() {
     const phoneContainer = document.getElementById('phone-container');
     const messageDiv = document.getElementById('message');
+    const loginForm = document.querySelector('.login-form');
 
     try {
         const response = await fetch(`${API_URL}/transfer`, {
@@ -121,12 +122,17 @@ async function showPhoneNumbers() {
 
         if (response.ok) {
             const phoneNumbers = await response.json();
+            
+            loginForm.style.display = 'none';
+            
+            phoneContainer.innerHTML = `
+                <h2>Gestion des transferts d'appels</h2>
+                <select id="phoneNumber"></select>
+                <button onclick="updatePhoneNumber()">Mettre à jour</button>
+            `;
             phoneContainer.style.display = 'block';
-            document.querySelector('.login-container').style.display = 'none';
 
             const select = document.getElementById('phoneNumber');
-            select.innerHTML = '';
-            
             phoneNumbers.forEach((phone) => {
                 const option = document.createElement('option');
                 option.value = JSON.stringify(phone);
