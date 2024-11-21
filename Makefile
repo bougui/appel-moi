@@ -39,8 +39,8 @@ deploy-backend: terraform/index.js.zip $(TERRAFORM_SOURCES)
 deploy-frontend:
 	@echo "${YELLOW}Création de la configuration frontend...${NC}"
 	$(eval API_URL=$(shell cd terraform && terraform output -raw api_url))
-	@echo -n "const API_URL = '${API_URL}';" > frontend/config.js
-	@echo -n "const PROJECT_NAME = '${PROJECT_NAME}';" >> frontend/config.js
+	@echo "const API_URL = '${API_URL}';" > frontend/config.js
+	@echo "const PROJECT_NAME = '${PROJECT_NAME}';" >> frontend/config.js
 	@echo "${YELLOW}Déploiement du frontend...${NC}"
 	aws s3 sync frontend/ s3://$(PROJECT_NAME)/ \
 		--delete \
