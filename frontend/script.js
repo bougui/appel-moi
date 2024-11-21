@@ -177,4 +177,7 @@ async function updatePhoneNumber() {
         console.error('Erreur:', error);
         messageDiv.innerHTML = `<p class="error">Erreur lors de la mise à jour</p>`;
     }
-} 
+}
+
+document.getElementById('project-title').textContent = PROJECT_NAME;
+document.getElementById('project-name').textContent = PROJECT_NAME; 
