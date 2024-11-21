@@ -153,6 +153,11 @@ async function showPhoneNumbers() {
 async function updatePhoneNumber() {
     const selectedPhone = document.getElementById('phoneNumber').value;
     const messageDiv = document.getElementById('update-message');
+    const updateButton = document.querySelector('#phone-container button');
+
+    // Afficher le message de chargement et désactiver le bouton
+    messageDiv.innerHTML = `<p class="loading">Un instant s'il vous plaît...</p>`;
+    updateButton.disabled = true;
 
     try {
         const response = await fetch(`${API_URL}/transfer`, {
@@ -177,6 +182,9 @@ async function updatePhoneNumber() {
     } catch (error) {
         console.error('Erreur:', error);
         messageDiv.innerHTML = `<p class="error">Erreur lors de la mise à jour</p>`;
+    } finally {
+        // Réactiver le bouton
+        updateButton.disabled = false;
     }
 }
 
