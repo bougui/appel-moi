@@ -1,6 +1,45 @@
 # Gestion des transferts d'appels
 
-Application web pour gérer les transferts d'appels téléphoniques du Camp Paul B.
+## Déploiement
+
+### Frontend (Vercel)
+Le frontend est déployé automatiquement sur Vercel :
+- Branch `main` → Production (`camp-paul-b.vercel.app`)
+- Branch `vercel-dev` → Développement (`vercel-dev-camp-paul-b.vercel.app`)
+
+Pour développer :
+
+```bash
+# Créer une branche de dev
+git checkout -b vercel-dev
+
+# Faire les modifications
+# ... modifier les fichiers ...
+
+# Commit et push pour déployer en dev
+git add .
+git commit -m "vos changements"
+git push origin vercel-dev
+
+# Une fois testé, merger en production
+git checkout main
+git merge vercel-dev
+git push origin main
+```
+
+### Backend (AWS)
+```bash
+make deploy-backend
+```
+
+## Structure du projet
+```
+.
+├── frontend/          # Déployé sur Vercel
+├── backend/           # Déployé sur AWS Lambda
+├── terraform/         # Infrastructure AWS
+└── vercel.json        # Configuration Vercel
+```
 
 ## Architecture
 
@@ -15,32 +54,6 @@ Application web pour gérer les transferts d'appels téléphoniques du Camp Paul
 - Make
 - Node.js et Vercel CLI
 - Une image de fond (à placer dans `frontend/images/background.jpg`)
-
-## Structure du projet
-
-```bash
-project/
-├── terraform
-│ ├── main.tf
-│ ├── variables.tf
-│ ├── outputs.tf
-│ └── terraform.tfvars
-├── backend/
-│ └── index.js # Code Lambda
-├── frontend/
-│ ├── images/
-│ │ └── background.jpg # Image de fond
-│ ├── index.html
-│ ├── script.js
-│ └── style.css
-├── terraform/
-│ ├── main.tf
-│ ├── variables.tf
-│ ├── outputs.tf
-│ └── terraform.tfvars
-├── vercel.json          # Configuration Vercel
-└── Makefile
-```
 
 ## Configuration
 
