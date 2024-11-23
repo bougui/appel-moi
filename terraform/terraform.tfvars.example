@@ -1,3 +1,7 @@
+# Terraform.tfvars
+# Fichier de variables d'environnement pour Terraform
+# Ce fichier est un exemple et doit être configuré avec les valeurs appropriées
+
 twilio_account_sid  = "AC********************************"
 twilio_auth_token   = "********************************"
 twilio_workflow_sid = "WW********************************"# pas nécessaire si on ne touche pas au workflow studio
@@ -7,6 +11,7 @@ twilio_number       = "+15157770123"
 app_username        = "Ton-usager"
 app_password        = "votre_mot_de_passe_secret"
 project_name        = "twilio-transfer"
+frontend_url        = "https://votre-url-frontend.com"
 environment         = "prod"
 project_description = "Votre projet"
 

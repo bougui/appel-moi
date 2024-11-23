@@ -23,6 +23,7 @@ resource "aws_lambda_function" "twilio_transfer" {
       PROJECT_NAME        = var.project_name
       ENVIRONMENT         = var.environment
       PROJECT_DESCRIPTION = var.project_description
+      FRONTEND_URL        = var.frontend_url
     }
   }
 
@@ -35,11 +36,10 @@ resource "aws_apigatewayv2_api" "api" {
   protocol_type = "HTTP"
 
   cors_configuration {
-    allow_origins  = ["*"]
-    allow_methods  = ["GET", "POST", "OPTIONS"]
-    allow_headers  = ["*"]
-    expose_headers = ["*"]
-    max_age        = 30
+    allow_origins     = [var.frontend_url]
+    allow_methods     = ["GET", "POST", "OPTIONS"]
+    allow_headers     = ["Content-Type", "Authorization"]
+    allow_credentials = true
   }
 }
 

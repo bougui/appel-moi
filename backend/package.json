@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "aws-sdk": "^2.1531.0",
+    "aws-sdk": "^2.1692.0",
     "twilio": "^5.x.x"
   }
 }

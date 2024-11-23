@@ -1,0 +1,9 @@
+node_modules
+.terraform
+terraform
+backend
+README.md
+Makefile
+.git
+.gitignore
+.DS_Store
