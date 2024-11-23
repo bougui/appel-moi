@@ -1,13 +1,19 @@
-# Gestion des transferts d'appels - Camp Paul B
+# Gestion des transferts d'appels
 
 Application web pour gérer les transferts d'appels téléphoniques du Camp Paul B.
+
+## Architecture
+
+- **Frontend** : Hébergé sur Vercel.com (contenu statique)
+- **Backend** : AWS Lambda + API Gateway
+- **Configuration** : AWS Systems Manager Parameter Store
 
 ## Prérequis
 
 - AWS CLI configuré avec les accès appropriés
 - Terraform v1.0+
 - Make
-- Un bucket S3 pour le frontend
+- Node.js et Vercel CLI
 - Une image de fond (à placer dans `frontend/images/background.jpg`)
 
 ## Structure du projet
@@ -32,8 +38,8 @@ project/
 │ ├── variables.tf
 │ ├── outputs.tf
 │ └── terraform.tfvars
-├── Makefile
-└── README.md
+├── vercel.json          # Configuration Vercel
+└── Makefile
 ```
 
 ## Configuration
@@ -45,42 +51,44 @@ project_name         = "votre-projet"
 environment          = "prod"
 aws_region          = "ca-central-1"
 project_description = "Gestion des transferts d'appels pour le Camp Paul B"
+frontend_url        = "https://votre-projet.vercel.app"
 ```
 
 2. Placez votre image de fond dans `frontend/images/background.jpg`
 
+
+## Déploiement
+
+1. **Backend (AWS)** :
+```bash
+make deploy-backend
+```
+
+2. **Frontend (Vercel)** :
+```bash
+npx vercel --prod
+```
+
+## Variables SSM requises
+
+Les variables suivantes doivent être configurées dans AWS Systems Manager Parameter Store :
+- `/{project_name}/{environment}/app_username`
+- `/{project_name}/{environment}/app_password`
+
 ## Commandes Make disponibles
 
 ```bash
-# Déployer l'infrastructure complète
-make deploy
-
-# Déployer uniquement le backend
+# Déployer le backend
 make deploy-backend
 
-# Déployer uniquement le frontend
+# Générer la configuration frontend et déployer sur Vercel
 make deploy-frontend
 
-# Détruire l'infrastructure
+# Détruire l'infrastructure AWS
 make destroy
 
 # Initialiser Terraform
 make init
-
-# Formater les fichiers Terraform
-make fmt
-```
-
-## Déploiement
-
-1. Initialisez le projet :
-```bash
-make init
-```
-
-2. Déployez l'infrastructure :
-```bash
-make deploy
 ```
 
 ## Fonctionnalités
@@ -112,8 +120,8 @@ AWS_REGION := ca-central-1
 
 - Authentification requise
 - Stockage sécurisé des credentials dans SSM
-- CORS configuré pour le domaine S3
-- Validation des entrées utilisateur
+- CORS configuré pour le domaine Vercel
+- HTTPS automatique via Vercel
 
 ## Support
 
@@ -127,4 +135,3 @@ Ce README :
 4. Explique la configuration requise
 5. Fournit une documentation complète pour les nouveaux développeurs
 ```
-

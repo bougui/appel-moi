@@ -35,7 +35,7 @@ deploy-backend: terraform/index.js.zip $(TERRAFORM_SOURCES)
 	@echo "${YELLOW}Déploiement du backend...${NC}"
 	cd terraform && terraform init && terraform apply -auto-approve
 
-# Déploiement du frontend (S3)
+# Déploiement du frontend (Vercel)
 deploy-frontend:
 	@echo "${YELLOW}Création de la configuration frontend...${NC}"
 	$(eval API_URL=$(shell cd terraform && terraform output -raw api_url))
@@ -43,11 +43,8 @@ deploy-frontend:
 	@echo "const API_URL = '${API_URL}';" > frontend/config.js
 	@echo "const PROJECT_NAME = '${PROJECT_NAME}';" >> frontend/config.js
 	@echo "const PROJECT_DESCRIPTION = '${PROJECT_DESC}';" >> frontend/config.js
-	@echo "${YELLOW}Déploiement du frontend...${NC}"
-	aws s3 sync frontend/ s3://$(PROJECT_NAME)/ \
-		--delete \
-		--cache-control "no-cache,no-store,must-revalidate" \
-		--region $(AWS_REGION)
+	@echo "${YELLOW}Déploiement du frontend sur Vercel...${NC}"
+	vercel --prod
 
 # Nettoyage
 clean:

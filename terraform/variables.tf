@@ -83,3 +83,8 @@ variable "app_username" {
   type        = string
   description = "Nom d'utilisateur pour l'application"
 }
+
+variable "frontend_url" {
+  type        = string
+  description = "URL du frontend (Vercel)"
+}

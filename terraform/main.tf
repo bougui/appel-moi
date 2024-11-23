@@ -23,6 +23,7 @@ resource "aws_lambda_function" "twilio_transfer" {
       PROJECT_NAME        = var.project_name
       ENVIRONMENT         = var.environment
       PROJECT_DESCRIPTION = var.project_description
+      FRONTEND_URL        = var.frontend_url
     }
   }
 
@@ -35,11 +36,10 @@ resource "aws_apigatewayv2_api" "api" {
   protocol_type = "HTTP"
 
   cors_configuration {
-    allow_origins  = ["*"]
-    allow_methods  = ["GET", "POST", "OPTIONS"]
-    allow_headers  = ["*"]
-    expose_headers = ["*"]
-    max_age        = 30
+    allow_origins     = [var.frontend_url]
+    allow_methods     = ["GET", "POST", "OPTIONS"]
+    allow_headers     = ["Content-Type", "Authorization"]
+    allow_credentials = true
   }
 }
 
@@ -193,66 +193,6 @@ resource "aws_iam_role_policy" "lambda_ssm" {
   })
 }
 
-# Création du bucket S3
-resource "aws_s3_bucket" "website" {
-  bucket = var.project_name
-}
-
-# Désactiver le blocage des accès publics
-resource "aws_s3_bucket_public_access_block" "website" {
-  bucket = aws_s3_bucket.website.id
-
-  block_public_acls       = false
-  block_public_policy     = false
-  ignore_public_acls      = false
-  restrict_public_buckets = false
-}
-
-# Configuration du site web
-resource "aws_s3_bucket_website_configuration" "website" {
-  bucket = aws_s3_bucket.website.id
-
-  index_document {
-    suffix = "index.html"
-  }
-
-  error_document {
-    key = "index.html"
-  }
-}
-
-# Politique du bucket (à ajouter APRÈS aws_s3_bucket_public_access_block)
-resource "aws_s3_bucket_policy" "website" {
-  # Attendre que le blocage public soit désactivé
-  depends_on = [aws_s3_bucket_public_access_block.website]
-
-  bucket = aws_s3_bucket.website.id
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Sid       = "PublicReadGetObject"
-        Effect    = "Allow"
-        Principal = "*"
-        Action    = "s3:GetObject"
-        Resource  = "${aws_s3_bucket.website.arn}/*"
-      },
-    ]
-  })
-}
-
-# Activation du CORS
-resource "aws_s3_bucket_cors_configuration" "website" {
-  bucket = aws_s3_bucket.website.id
-
-  cors_rule {
-    allowed_headers = ["*"]
-    allowed_methods = ["GET", "HEAD"]
-    allowed_origins = ["*"]
-    expose_headers  = ["ETag"]
-    max_age_seconds = 0
-  }
-}
 # Création explicite du groupe de logs CloudWatch
 resource "aws_cloudwatch_log_group" "lambda_logs" {
   name              = "/aws/lambda/${var.project_name}-manager"

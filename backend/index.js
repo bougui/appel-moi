@@ -1,5 +1,6 @@
 const AWS = require('aws-sdk');
 const twilio = require('twilio');
+const { SSMClient, GetParameterCommand } = require('@aws-sdk/client-ssm');
 
 const ssm = new AWS.SSM();
 const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID;
@@ -13,6 +14,16 @@ const ENVIRONMENT = process.env.ENVIRONMENT || 'prod';
 
 // Ajoutez la description du projet aux logs
 const projectDescription = process.env.PROJECT_DESCRIPTION || 'Description non définie';
+
+// Récupérer l'URL du frontend depuis les variables d'environnement
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://camp-paul-b.vercel.app';
+
+const corsHeaders = {
+    'Access-Control-Allow-Origin': FRONTEND_URL,
+    'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+    'Access-Control-Allow-Credentials': true
+};
 
 async function getSSMParameter(paramName) {
     const AWS = require('aws-sdk');
@@ -48,12 +59,6 @@ async function validatePassword(password) {
 exports.handler = async (event) => {
     console.log(`Description du projet: ${projectDescription}`);
     console.log('Méthode:', event.requestContext.http.method);
-
-    const corsHeaders = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
-        'Access-Control-Allow-Headers': '*'
-    };
 
     // Gestion OPTIONS
     if (event.requestContext.http.method === 'OPTIONS') {
